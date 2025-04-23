@@ -24,7 +24,7 @@ fn main() -> io::Result<()> {
 
     if docless {
         let segments = raw_parse(&buffer);
-        raw_display(&segments);
+        tabular_display(&segments);
         return Ok(());
     }
 
@@ -57,24 +57,29 @@ fn raw_parse<'a>(edi: &'a str) -> Vec<Vec<&'a str>> {
     segments
 }
 
-fn raw_display(segments: &Vec<Vec<&str>>) {
+fn tabular_display(segments: &Vec<Vec<&str>>) {
 
-    let mut table = Table::new("{:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<}");
+    let cols = segments.iter().map(|s| s.len()).max().unwrap();
+
+    eprintln!("Max segment len = {cols}");
+
+    let table_fmt = (0..=cols).map(|_| "{:<} ").collect::<String>();
+
+    let mut table = Table::new(table_fmt.as_str());
     let mut row = Row::new();
-    (0..=21).for_each(|n| row = row.clone().with_cell(n));
+    (0..=cols).for_each(|n| row = row.clone().with_cell(n));
     table.add_row(row);
 
     for seg in segments {
         let mut row = Row::new();
         seg.iter().for_each(|f| row = row.clone().with_cell(*f));
 
-        for blank_col in 0..=21-seg.len(){
+        for blank_col in 0..=cols-seg.len() {
             row = row.clone().with_cell("");
         }
 
         table.add_row(row);
-        //let rec = seg.iter().zip(0..).map(|(fld, fld_num)| format!("{fld_num}=\"{fld}\"")).collect::<Vec<String>>().join(" | ");
-        //println!("{rec}");
+
     }
 
     println!("{table}");
