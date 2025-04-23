@@ -14,10 +14,11 @@ mod cli;
 
 
 fn main() -> io::Result<()> {
+
+    pretty_env_logger::init();
+
     let cli = Cli::parse();
-
-    println!("CLI: {cli:#?}");
-
+    
     let mut buffer = String::new();
     io::stdin().read_line(&mut buffer)?;
 
@@ -65,9 +66,7 @@ fn raw_parse<'a>(edi: &'a str) -> Vec<Vec<&'a str>> {
 fn tabular_display(segments: &Vec<Vec<&str>>) {
 
     let cols = segments.iter().map(|s| s.len()).max().unwrap();
-
-    eprintln!("Max segment len = {cols}");
-
+    
     let table_fmt = (0..cols).map(|_| "{:<} ").collect::<String>();
 
     let mut table = Table::new(table_fmt.as_str());
@@ -76,7 +75,7 @@ fn tabular_display(segments: &Vec<Vec<&str>>) {
     table.add_row(row);
 
     let mut row = Row::new();
-    (0..cols).for_each(|n| row = row.clone().with_cell("---"));
+    (0..cols).for_each(|n| row = row.clone().with_cell("-----"));
     table.add_row(row);
 
 
@@ -102,15 +101,13 @@ fn json_display(segments: &Vec<Vec<&str>>) {
 fn csv_display(segments: &mut Vec<Vec<&str>>) {
 
     let cols = segments.iter().map(|s| s.len()).max().unwrap();
-
-    eprintln!("Max segment len = {cols}");
-
+    
     let mut wtr = WriterBuilder::new().from_writer(vec![]);
 
     let mut headers = vec!["SEG".to_string()];
     (1..cols).for_each(|fld| headers.push(format!("{fld:0>2}")));
 
-    wtr.write_record(dbg!(headers)).expect("Failed to write CSV headers");
+    wtr.write_record(headers).expect("Failed to write CSV headers");
 
     for mut rec in segments {
 
@@ -118,9 +115,7 @@ fn csv_display(segments: &mut Vec<Vec<&str>>) {
         let pad = cols-rec.len();
         row.append(&mut rec);
         row.append(&mut vec![""].repeat(pad));
-
-        dbg!(&row);
-
+        
         wtr.write_record(row).expect("Failed to write CSV");
     }
 
