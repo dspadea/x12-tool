@@ -8,6 +8,7 @@ use x12_types::{
     util::Parser as x12_parser,
     v005010::{Transmission,_276, _277, _834, _835},
 };
+use log::warn;
 use crate::cli::{Cli, DoclessOutputMode};
 
 mod cli;
@@ -18,7 +19,7 @@ fn main() -> io::Result<()> {
     pretty_env_logger::init();
 
     let cli = Cli::parse();
-    
+
     let mut buffer = String::new();
     io::stdin().read_line(&mut buffer)?;
 
@@ -28,7 +29,7 @@ fn main() -> io::Result<()> {
         // CSV and Tabular might not make sense for "structured doc" mode. Need to think about this.
         match cli.docless_output_mode.unwrap_or(DoclessOutputMode::Tabular) {
             DoclessOutputMode::CSV => {csv_display(&mut segments)}
-            DoclessOutputMode::Tabular => {tabular_display(&segments)}
+            DoclessOutputMode::Tabular => {tabular_display(&cli, &segments)}
             DoclessOutputMode::JSON => {json_display(&segments)}
         }
         return Ok(());
@@ -63,10 +64,10 @@ fn raw_parse<'a>(edi: &'a str) -> Vec<Vec<&'a str>> {
     segments
 }
 
-fn tabular_display(segments: &Vec<Vec<&str>>) {
+fn tabular_display(cli: &Cli, segments: &Vec<Vec<&str>>) {
 
     let cols = segments.iter().map(|s| s.len()).max().unwrap();
-    
+
     let table_fmt = (0..cols).map(|_| "{:<} ").collect::<String>();
 
     let mut table = Table::new(table_fmt.as_str());
@@ -78,8 +79,20 @@ fn tabular_display(segments: &Vec<Vec<&str>>) {
     (0..cols).for_each(|n| row = row.clone().with_cell("-----"));
     table.add_row(row);
 
+    let mut transaction_set_type = None;
+    let mut seg_count = 0;
 
     for seg in segments {
+
+        if cli.tabular_show_txn_sets && seg[0] == "ST" {
+            table.add_heading(format!("\n\n----EDI {} Transaction Set ----", seg[1]));
+            transaction_set_type = Some(seg[1].clone())
+        }
+
+        if seg[0] != "ST" && seg[0] != "SE" {
+            seg_count += 1;
+        }
+
         let mut row = Row::new();
         seg.iter().for_each(|f| row = row.clone().with_cell(*f));
 
@@ -88,6 +101,14 @@ fn tabular_display(segments: &Vec<Vec<&str>>) {
         }
 
         table.add_row(row);
+
+        if cli.tabular_show_txn_sets && seg[0] == "SE" {
+            table.add_heading(format!("---- END EDI {} Transaction Set (Declared {} segments, found {}) ----\n\n", transaction_set_type.unwrap(), seg[1], seg_count));
+        }
+
+        if (!cli.tabular_show_txn_sets) && seg[0] == "SE" && seg[1].parse::<u16>().expect("Invalid SE01 value") != seg_count {
+            warn!("SE declares {} segments, but counted {}", seg[1], seg_count);
+        }
 
     }
 
@@ -101,7 +122,7 @@ fn json_display(segments: &Vec<Vec<&str>>) {
 fn csv_display(segments: &mut Vec<Vec<&str>>) {
 
     let cols = segments.iter().map(|s| s.len()).max().unwrap();
-    
+
     let mut wtr = WriterBuilder::new().from_writer(vec![]);
 
     let mut headers = vec!["SEG".to_string()];
@@ -115,7 +136,7 @@ fn csv_display(segments: &mut Vec<Vec<&str>>) {
         let pad = cols-rec.len();
         row.append(&mut rec);
         row.append(&mut vec![""].repeat(pad));
-        
+
         wtr.write_record(row).expect("Failed to write CSV");
     }
 

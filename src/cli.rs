@@ -28,6 +28,10 @@ pub struct Cli {
     #[arg(long)]
     pub docless_output_mode: Option<DoclessOutputMode>,
 
+    /// In Docless tabular output, offset transaction set groupings for emphasis
+    #[arg(long)]
+    pub tabular_show_txn_sets: bool,
+
     /// Specify EDI files to read. Read from STDIN by default.
     #[arg(value_name = "INPUT_FILE")]
     pub input_files: Option<Vec<PathBuf>>,
