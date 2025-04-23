@@ -10,26 +10,23 @@ fn main() -> io::Result<()> {
 
     let args: Vec<String> = env::args().collect();
 
-    let mut raw = false;
+    let mut docless = false;
 
     // Todo: Use clap
     if args.len() > 1 {
-        if args[1] == "--raw" {
-            raw = true;
+        if args[1] == "--docless" {
+            docless = true;
         }
     }
 
     let mut buffer = String::new();
     io::stdin().read_line(&mut buffer)?;
 
-    if raw {
+    if docless {
         let segments = raw_parse(&buffer);
         raw_display(&segments);
         return Ok(());
     }
-
-    // I also want a "docless" mode to inspect the individual segments
-    // independently of the structured doc-based parsing.
 
     // We need to update the x12-types library to parse without knowing the doctype up front.
     let (rest, edi_doc) = Transmission::<_276>::parse(&buffer).expect("Parser error:");
