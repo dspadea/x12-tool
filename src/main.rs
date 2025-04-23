@@ -1,30 +1,35 @@
+
+
 use std::{env, io};
+use clap::Parser as _clap_parser;
+use csv::WriterBuilder;
 use tabular::{Row, Table};
 use x12_types::{
-    util::Parser,
+    util::Parser as x12_parser,
     v005010::{Transmission,_276, _277, _834, _835},
 };
+use crate::cli::{Cli, DoclessOutputMode};
+
+mod cli;
 
 
 fn main() -> io::Result<()> {
+    let cli = Cli::parse();
 
-    let args: Vec<String> = env::args().collect();
-
-    let mut docless = false;
-
-    // Todo: Use clap
-    if args.len() > 1 {
-        if args[1] == "--docless" {
-            docless = true;
-        }
-    }
+    println!("CLI: {cli:#?}");
 
     let mut buffer = String::new();
     io::stdin().read_line(&mut buffer)?;
 
-    if docless {
-        let segments = raw_parse(&buffer);
-        tabular_display(&segments);
+    if cli.docless {
+        let mut segments = raw_parse(&buffer);
+
+        // CSV and Tabular might not make sense for "structured doc" mode. Need to think about this.
+        match cli.docless_output_mode.unwrap_or(DoclessOutputMode::Tabular) {
+            DoclessOutputMode::CSV => {csv_display(&mut segments)}
+            DoclessOutputMode::Tabular => {tabular_display(&segments)}
+            DoclessOutputMode::JSON => {json_display(&segments)}
+        }
         return Ok(());
     }
 
@@ -63,18 +68,23 @@ fn tabular_display(segments: &Vec<Vec<&str>>) {
 
     eprintln!("Max segment len = {cols}");
 
-    let table_fmt = (0..=cols).map(|_| "{:<} ").collect::<String>();
+    let table_fmt = (0..cols).map(|_| "{:<} ").collect::<String>();
 
     let mut table = Table::new(table_fmt.as_str());
-    let mut row = Row::new();
-    (0..=cols).for_each(|n| row = row.clone().with_cell(n));
+    let mut row = Row::new().with_cell("SEG");
+    (1..cols).for_each(|n| row = row.clone().with_cell(format!("{n:0>2}")));
     table.add_row(row);
+
+    let mut row = Row::new();
+    (0..cols).for_each(|n| row = row.clone().with_cell("---"));
+    table.add_row(row);
+
 
     for seg in segments {
         let mut row = Row::new();
         seg.iter().for_each(|f| row = row.clone().with_cell(*f));
 
-        for blank_col in 0..=cols-seg.len() {
+        for blank_col in 0..cols-seg.len() {
             row = row.clone().with_cell("");
         }
 
@@ -83,4 +93,36 @@ fn tabular_display(segments: &Vec<Vec<&str>>) {
     }
 
     println!("{table}");
+}
+
+fn json_display(segments: &Vec<Vec<&str>>) {
+    println!("{}", serde_json::to_string_pretty(segments).expect("Error converting to JSON"));
+}
+
+fn csv_display(segments: &mut Vec<Vec<&str>>) {
+
+    let cols = segments.iter().map(|s| s.len()).max().unwrap();
+
+    eprintln!("Max segment len = {cols}");
+
+    let mut wtr = WriterBuilder::new().from_writer(vec![]);
+
+    let mut headers = vec!["SEG".to_string()];
+    (1..cols).for_each(|fld| headers.push(format!("{fld:0>2}")));
+
+    wtr.write_record(dbg!(headers)).expect("Failed to write CSV headers");
+
+    for mut rec in segments {
+
+        let mut row = vec![];
+        let pad = cols-rec.len();
+        row.append(&mut rec);
+        row.append(&mut vec![""].repeat(pad));
+
+        dbg!(&row);
+
+        wtr.write_record(row).expect("Failed to write CSV");
+    }
+
+    println!("{w}", w=String::from_utf8(wtr.into_inner().expect("Failed to expose inner writer")).expect("Failed to read UTF8 bytes"));
 }
