@@ -1,7 +1,5 @@
-use std::env::args;
-use tabular::{Row, Table};
 use std::{env, io};
-use std::process::exit;
+use tabular::{Row, Table};
 use x12_types::{
     util::Parser,
     v005010::{Transmission,_276, _277, _834, _835},
@@ -63,8 +61,24 @@ fn raw_parse<'a>(edi: &'a str) -> Vec<Vec<&'a str>> {
 }
 
 fn raw_display(segments: &Vec<Vec<&str>>) {
+
+    let mut table = Table::new("{:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<} {:<}");
+    let mut row = Row::new();
+    (0..=21).for_each(|n| row = row.clone().with_cell(n));
+    table.add_row(row);
+
     for seg in segments {
-        let rec = seg.iter().zip(0..).map(|(fld, fld_num)| format!("{fld_num}=\"{fld}\"")).collect::<Vec<String>>().join(" | ");
-        println!("{rec}");
+        let mut row = Row::new();
+        seg.iter().for_each(|f| row = row.clone().with_cell(*f));
+
+        for blank_col in 0..=21-seg.len(){
+            row = row.clone().with_cell("");
+        }
+
+        table.add_row(row);
+        //let rec = seg.iter().zip(0..).map(|(fld, fld_num)| format!("{fld_num}=\"{fld}\"")).collect::<Vec<String>>().join(" | ");
+        //println!("{rec}");
     }
+
+    println!("{table}");
 }
