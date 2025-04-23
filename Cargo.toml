@@ -1,0 +1,8 @@
+[package]
+name = "x12-tool"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+x12-types = { path = "../x12/276-277-support" }
+tabular = "0.2"

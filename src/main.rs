@@ -1,0 +1,70 @@
+use std::env::args;
+use tabular::{Row, Table};
+use std::{env, io};
+use std::process::exit;
+use x12_types::{
+    util::Parser,
+    v005010::{Transmission,_276, _277, _834, _835},
+};
+
+
+fn main() -> io::Result<()> {
+
+    let args: Vec<String> = env::args().collect();
+
+    let mut raw = false;
+
+    // Todo: Use clap
+    if args.len() > 1 {
+        if args[1] == "--raw" {
+            raw = true;
+        }
+    }
+
+    let mut buffer = String::new();
+    io::stdin().read_line(&mut buffer)?;
+
+    if raw {
+        let segments = raw_parse(&buffer);
+        raw_display(&segments);
+        return Ok(());
+    }
+
+    // I also want a "docless" mode to inspect the individual segments
+    // independently of the structured doc-based parsing.
+
+    // We need to update the x12-types library to parse without knowing the doctype up front.
+    let (rest, edi_doc) = Transmission::<_276>::parse(&buffer).expect("Parser error:");
+
+    if rest.trim().len() > 0 {
+        eprintln!("WARNING: Input may not be completely parsed. Remaining: {rest}");
+    }
+
+    // We need much better TUI here, but at least we can look at the parsed
+    // structure more easily than the raw EDI.
+    dbg!(edi_doc);
+
+    Ok(())
+}
+
+fn raw_parse<'a>(edi: &'a str) -> Vec<Vec<&'a str>> {
+
+    let mut segments = vec![];
+
+    for seg in edi.split("~") {
+        if seg.trim().len() == 0 {
+            continue;
+        }
+        let split_seg: Vec<&str> = seg.split("*").collect();
+        segments.push(split_seg);
+    }
+
+    segments
+}
+
+fn raw_display(segments: &Vec<Vec<&str>>) {
+    for seg in segments {
+        let rec = seg.iter().zip(0..).map(|(fld, fld_num)| format!("{fld_num}=\"{fld}\"")).collect::<Vec<String>>().join(" | ");
+        println!("{rec}");
+    }
+}
