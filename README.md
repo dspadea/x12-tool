@@ -23,11 +23,9 @@ The default mode will be a full parsing of the loops and structures which are su
 
 ### Docless Parse and View in tabular mode
 
-```
-cat X212-276-provider-request.edi| x12-tool --docless --docless-output-mode=tabular --tabular-show-txn-sets
+```shell
+$ cat X212-276-provider-request.edi| x12-tool --docless --docless-output-mode=tabular --tabular-show-txn-sets
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.10s
-     Running `target/debug/x12-tool --docless --docless-output-mode=tabular --tabular-show-txn-sets`
 SEG   01       02         03                       04         05    06              07    08              09         10    11    12    13        14    15    16
 ----- -----    -----      -----                    -----      ----- -----           ----- -----           -----      ----- ----- ----- -----     ----- ----- -----
 ISA   00                  00                                  ZZ    123456789012345 ZZ    123456789012346 080503     1705  >     00501 000010216 0     T     :
@@ -71,8 +69,9 @@ IEA   1        000010216
 ```
 
 ### Docless Parse and Output as CSV
-```
-cat X212-276-provider-request.edi| x12-tool --docless --docless-output-mode=csv
+
+```shell
+$ cat X212-276-provider-request.edi| x12-tool --docless --docless-output-mode=csv
 
 SEG,01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16
 ISA,00,          ,00,          ,ZZ,123456789012345,ZZ,123456789012346,080503,1705,>,00501,000010216,0,T,:
@@ -110,8 +109,8 @@ IEA,1,000010216,,,,,,,,,,,,,,
 ```
 ### Docless Parse and Output as JSON
 
-```
-cat X212-276-provider-request.edi| x12-tool --docless --docless-output-mode=json
+```shell
+$ cat X212-276-provider-request.edi| x12-tool --docless --docless-output-mode=json
 [
   [
     "ISA",
