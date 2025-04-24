@@ -2,6 +2,10 @@
 name = "x12-tool"
 version = "0.1.0"
 edition = "2024"
+authors = ["David Spadea"]
+license = "GPL-2.0-or-later"
+homepage = "https://github.com/dspadea/x12-tool"
+
 
 [dependencies]
 x12-types = { git = "https://github.com/dspadea/x12-types.git", branch="dave/276-277-support" }
@@ -13,3 +17,4 @@ csv = "1.3.1"
 
 pretty_env_logger = "0.5"
 log = "0.4.27"
+
