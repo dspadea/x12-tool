@@ -14,7 +14,9 @@ cargo install --git https://github.com/dspadea/x12-tool.git
 
 ## Usage
 
-The `x12-tool` mostly focuses around "docless" mode right now. "Docless" mode does not attempt to parse into specific loops or document types. It is a very simple parsing of EDI segments in isolation for the purposes of making the document easier to read or convert to other simple formats like CSV or array-based JSON. 
+### Docless vs Standard Mode
+
+The `x12-tool` mostly focuses around "docless" mode right now. "Docless" mode does not attempt to parse into specific loops or document types. It is a very simple parsing of EDI segments in isolation for the purposes of making the document easier to read or convert to other simple formats like CSV or array-based JSON. Because docless does not attempt to "understand" the document wholistically, it should work for just about any EDI file.
 
 The default mode will be a full parsing of the loops and structures which are supported by the `x12-types` library. This is in its infancy. It can currently parse some types of documents and output the parsed structure in Rust Debug format. This is experimental, and probably not very useful right now.
 
@@ -22,7 +24,7 @@ The default mode will be a full parsing of the loops and structures which are su
 ### Docless Parse and View in tabular mode
 
 ```
-cat ~/projects/x12/x12-samples/005010X212\ Health\ Care\ Claim\ Status\ Request\ and\ Response/X212-276-provider-request.edi| x12-tool --docless --docless-output-mode=tabular --tabular-show-txn-sets
+cat X212-276-provider-request.edi| x12-tool --docless --docless-output-mode=tabular --tabular-show-txn-sets
 
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.10s
      Running `target/debug/x12-tool --docless --docless-output-mode=tabular --tabular-show-txn-sets`
@@ -70,7 +72,7 @@ IEA   1        000010216
 
 ### Docless Parse and Output as CSV
 ```
-cat ~/projects/x12/x12-samples/005010X212\ Health\ Care\ Claim\ Status\ Request\ and\ Response/X212-276-provider-request.edi| x12-tool --docless --docless-output-mode=csv
+cat X212-276-provider-request.edi| x12-tool --docless --docless-output-mode=csv
 
 SEG,01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16
 ISA,00,          ,00,          ,ZZ,123456789012345,ZZ,123456789012346,080503,1705,>,00501,000010216,0,T,:
@@ -109,7 +111,7 @@ IEA,1,000010216,,,,,,,,,,,,,,
 ### Docless Parse and Output as JSON
 
 ```
-cat ~/projects/x12/x12-samples/005010X212\ Health\ Care\ Claim\ Status\ Request\ and\ Response/X212-276-provider-request.edi| x12-tool --docless --docless-output-mode=json
+cat X212-276-provider-request.edi| x12-tool --docless --docless-output-mode=json
 [
   [
     "ISA",
