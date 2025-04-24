@@ -16,7 +16,7 @@ cargo install --git https://github.com/dspadea/x12-tool.git
 
 ### Docless vs Standard Mode
 
-The `x12-tool` mostly focuses around "docless" mode right now. "Docless" mode does not attempt to parse into specific loops or document types. It is a very simple parsing of EDI segments in isolation for the purposes of making the document easier to read or convert to other simple formats like CSV or array-based JSON. Because docless does not attempt to "understand" the document wholistically, it should work for just about any EDI file.
+The `x12-tool` mostly focuses around "docless" mode right now. "Docless" mode does not attempt to parse into specific loops or document types. It is a very simple parsing of EDI segments in isolation for the purposes of making the document easier to read or convert to other simple formats like CSV or array-based JSON. Because docless does not attempt to "understand" the document holistically, it should work for just about any EDI file.
 
 The default mode will be a full parsing of the loops and structures which are supported by the `x12-types` library. This is in its infancy. It can currently parse some types of documents and output the parsed structure in Rust Debug format. This is experimental, and probably not very useful right now.
 
