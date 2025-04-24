@@ -1,12 +1,12 @@
 
 
-use std::{env, io};
+use std::{ io};
 use clap::Parser as _clap_parser;
 use csv::WriterBuilder;
 use tabular::{Row, Table};
 use x12_types::{
     util::Parser as x12_parser,
-    v005010::{Transmission,_276, _277, _834, _835},
+    v005010::{Transmission,_276},
 };
 use log::warn;
 use crate::cli::{Cli, DoclessOutputMode};
@@ -76,7 +76,7 @@ fn tabular_display(cli: &Cli, segments: &Vec<Vec<&str>>) {
     table.add_row(row);
 
     let mut row = Row::new();
-    (0..cols).for_each(|n| row = row.clone().with_cell("-----"));
+    (0..cols).for_each(|_| row = row.clone().with_cell("-----"));
     table.add_row(row);
 
     let mut transaction_set_type = None;
@@ -86,7 +86,7 @@ fn tabular_display(cli: &Cli, segments: &Vec<Vec<&str>>) {
 
         if cli.tabular_show_txn_sets && seg[0] == "ST" {
             table.add_heading(format!("\n\n----EDI {} Transaction Set ----", seg[1]));
-            transaction_set_type = Some(seg[1].clone())
+            transaction_set_type = Some(seg[1])
         }
 
         if seg[0] != "ST" && seg[0] != "SE" {
@@ -96,7 +96,7 @@ fn tabular_display(cli: &Cli, segments: &Vec<Vec<&str>>) {
         let mut row = Row::new();
         seg.iter().for_each(|f| row = row.clone().with_cell(*f));
 
-        for blank_col in 0..cols-seg.len() {
+        for _blank_col in 0..cols-seg.len() {
             row = row.clone().with_cell("");
         }
 
