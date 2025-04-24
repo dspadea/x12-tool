@@ -1,6 +1,10 @@
 # x12-tool
 
-A Tool for inspecting and converting X12 EDI
+A Tool for inspecting and converting X12 EDI. 
+
+It can currently do "docless" parsing of EDI and convert the document to array-based JSON, CSV, and a tabular format for easier viewing on screen. While simple, this can make it much easier to work with EDI documents when developing other code. 
+
+"Smarter" parsing is planned through use of the `x12-types` library initially. This library can parse the various loops so that the structure of the EDI transmission can be more easily seen. There is currently code in the tool to do that, but it needs more work before it's very useful.
 
 ## Maturity
 
